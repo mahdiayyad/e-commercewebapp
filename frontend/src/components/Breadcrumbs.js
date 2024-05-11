@@ -10,7 +10,7 @@ export const Breadcrumbs = ({ breadcrumbs }) => {
   ) : (
     <>
       <div className="breadcrumbs">
-        {pathname !== "/signup" && pathname !== "/login" ? (
+        {pathname !== "/signup" && pathname !== "/login" && pathname !== "/forget-password" ? (
           <>
             <Link
               style={{

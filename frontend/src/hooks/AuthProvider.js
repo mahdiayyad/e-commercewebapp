@@ -75,6 +75,7 @@ const AuthProvider = ({ children }) => {
     localStorage.clear();
     navigate("/login");
   };
+
   return (
     <AuthContext.Provider
       value={{ token, user, login, register, logOut, error }}

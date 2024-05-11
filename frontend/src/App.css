@@ -94,7 +94,8 @@ ul.header-ul {
 }
 
 .signup-btn,
-.login-btn {
+.login-btn,
+.forget-password-btn {
   width: 100%;
   border: 1px solid #9b9b9b;
   background: linear-gradient(to right, #11998e, #38ef7d);
@@ -102,14 +103,18 @@ ul.header-ul {
   padding: 5px;
   border-radius: 8px;
   color: #fff;
-  /* font-weight: 900; */
+  transition: 0.3s;
+  /* font-weight: 600; */
 }
 
+.forget-password-btn:hover,
 .signup-btn:hover,
 .login-btn:hover {
-  font-size: 22px;
-  font-weight: 700;
-  transition: border-color 0s, font-size 0.2s, font-weight 0.2s ease-out;
+  opacity: 0.8;
+}
+
+.forget-password-container {
+  width: 30%;
 }
 
 .signgoogle-btn {
@@ -314,6 +319,9 @@ ul.hamburgermenu {
 }
 
 @media screen and (max-width: 992px) {
+  .forget-password-container {
+    width: 100% !important;
+  }
   .footer-div {
     margin: 0;
   }
@@ -463,7 +471,7 @@ ul.hamburgermenu {
 
 .react-tel-input .form-control:focus {
   border: none !important;
-  box-shadow:none !important;
+  box-shadow: none !important;
 }
 
 .react-tel-input .flag-dropdown {
@@ -471,9 +479,15 @@ ul.hamburgermenu {
   background: transparent !important;
 }
 
-
 .error-messages {
-  color:#d84444;
+  color: #d84444;
   font-size: 14px;
   font-weight: 600;
+}
+
+
+
+/* Swal customization */
+div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
+  background-color: #d84444 !important;
 }

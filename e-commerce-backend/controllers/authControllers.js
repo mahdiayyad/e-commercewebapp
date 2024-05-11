@@ -1,6 +1,7 @@
 const { v4: uuidv4 } = require("uuid");
 const jwt = require("jsonwebtoken");
 const userSchema = require("../schemas/userSchema");
+var nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
 const {
   createTable,
@@ -129,8 +130,51 @@ const getUser = async (req, res) => {
   });
 };
 
+const forgetPassword = async (req, res) => {
+  const email = req.body.email;
+  const user = await checkRecordExists("users", "email", email);
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found.",
+    });
+  }
+
+  var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+
+  var mailOptions = {
+    from: process.env.EMAIL,
+    to: email,
+    subject: "Testing email",
+    text: `Test Reset link`,
+  };
+
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "A confirmation link has been sent to your email. Please check your email",
+    });
+  });
+};
+
 module.exports = {
   register,
   login,
   getUser,
+  forgetPassword,
 };
