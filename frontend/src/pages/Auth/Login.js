@@ -13,11 +13,7 @@ export const Login = () => {
 
   const handleSubmitEvent = (e) => {
     e.preventDefault();
-    if (input.email !== "" && input.password !== "") {
-      auth.login(input);
-      return ;
-    }
-    alert("pleae provide a valid input");
+    auth.login(input);
   };
 
   const handleInput = (e) => {
@@ -75,6 +71,11 @@ export const Login = () => {
                       Password
                     </label>
                   </div>
+                </div>
+                <div className="col-12">
+                  <span className="error-messages">
+                    {auth?.error !== "" ? auth?.error : ""}
+                  </span>
                 </div>
                 <div className="col-12 my-3">
                   <button className="login-btn" type="submit">

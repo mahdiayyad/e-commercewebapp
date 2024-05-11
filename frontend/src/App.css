@@ -453,3 +453,27 @@ ul.hamburgermenu {
 .service-container {
   justify-content: space-evenly !important;
 }
+
+.react-tel-input {
+  padding: 0 !important;
+}
+.react-tel-input .form-control {
+  border: none !important;
+}
+
+.react-tel-input .form-control:focus {
+  border: none !important;
+  box-shadow:none !important;
+}
+
+.react-tel-input .flag-dropdown {
+  border: none !important;
+  background: transparent !important;
+}
+
+
+.error-messages {
+  color:#d84444;
+  font-size: 14px;
+  font-weight: 600;
+}

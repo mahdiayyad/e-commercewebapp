@@ -14,25 +14,49 @@ const generateAccessToken = (userId) => {
 };
 
 const register = async (req, res) => {
-  const { name, email, password } = req.body;
-  if (!name || !email || !password) {
-    res
-      .status(400)
-      .json({ error: "Email or Password fields cannot be empty!" });
+  const {
+    firstName,
+    lastName,
+    phoneNumber,
+    phoneCode,
+    email,
+    password,
+    confirmPassword,
+  } = req.body;
+  if (
+    !firstName ||
+    !lastName ||
+    !phoneNumber ||
+    !phoneCode ||
+    !email ||
+    !password ||
+    !confirmPassword
+  ) {
+    res.status(200).json({ message: "Please fill all fields." });
     return;
   }
+
+  if (password !== confirmPassword) {
+    res.status(200).json({ message: "Password doesn't match." });
+    return;
+  }
+
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
+
   const user = {
-    name,
-    email,
+    first_name: firstName,
+    last_name: lastName,
+    phone_number: phoneNumber,
+    phone_code: phoneCode,
+    email: email,
     password: hashedPassword,
   };
   try {
     await createTable(userSchema);
     const userAlreadyExists = await checkRecordExists("users", "email", email);
     if (userAlreadyExists) {
-      res.status(409).json({ error: "Email already exists" });
+      res.status(200).json({ message: "Email already exists" });
     } else {
       await insertRecord("users", user);
       res.status(201).json({ message: "User created successfully!" });
@@ -71,7 +95,9 @@ const login = async (req, res) => {
         res.status(200).json({
           user: {
             id: existingUser.id,
-            name: existingUser.name,
+            firstName: existingUser.first_name,
+            lastName: existingUser.last_name,
+            phone: existingUser.phone_number,
             email: existingUser.email,
           },
           access_token: token,

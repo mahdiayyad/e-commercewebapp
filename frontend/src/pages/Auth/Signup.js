@@ -3,31 +3,44 @@ import sideImage from "../../assets/img/side-image.png";
 import googleIcon from "../../assets/img/Icon-Google.png";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/AuthProvider";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 export const Signup = () => {
   const [input, setInput] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+    phoneCode: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
 
-  console.log(input);
   const auth = useAuth();
 
   const handleSubmitEvent = (e) => {
     e.preventDefault();
-    if (input.name !== "" && input.email !== "" && input.password !== "") {
-      auth.register(input);
-      return;
-    }
-    alert("pleae provide a valid input");
+    auth.register(input);
   };
 
-  const handleInput = (e) => {
-    const { name, value } = e.target;
+  const handlePhoneChange = (value, country) => {
+    console.log(value);
+    const phoneNumberWithoutCode = value
+      .replace(country.dialCode, "")
+      .trim();
+
     setInput((prev) => ({
       ...prev,
-      [name]: value,
+      phoneNumber: phoneNumberWithoutCode,
+      phoneCode: country.dialCode,
+    }));
+  };
+
+  const handleInput = (fieldName, value) => {
+    setInput((prev) => ({
+      ...prev,
+      [fieldName]: value,
     }));
   };
 
@@ -49,22 +62,41 @@ export const Signup = () => {
             <p>Enter your details below</p>
             <form onSubmit={handleSubmitEvent}>
               <div className="row">
-                <div className="col-12 my-3">
+                <div className="col-lg-6 col-sm-12 my-2 p-1">
                   <div className="form__group field">
                     <input
                       className="form__field"
-                      id="name"
+                      id="firstName"
                       type="text"
-                      name="name"
-                      placeholder="Name"
-                      onChange={handleInput}
+                      name="firstName"
+                      placeholder="First name"
+                      onChange={(e) =>
+                        handleInput(e.target.name, e.target.value)
+                      }
                     />
-                    <label htmlFor="name" className="form__label">
-                      Name
+                    <label htmlFor="firstName" className="form__label">
+                      First name
                     </label>
                   </div>
                 </div>
-                <div className="col-12 my-3">
+                <div className="col-lg-6 col-sm-12 my-2 p-1">
+                  <div className="form__group field">
+                    <input
+                      className="form__field"
+                      id="lastName"
+                      type="text"
+                      name="lastName"
+                      placeholder="Last name"
+                      onChange={(e) =>
+                        handleInput(e.target.name, e.target.value)
+                      }
+                    />
+                    <label htmlFor="lastName" className="form__label">
+                      Last name
+                    </label>
+                  </div>
+                </div>
+                <div className="col-lg-6 col-sm-12 my-2 p-1">
                   <div className="form__group field">
                     <input
                       className="form__field"
@@ -72,14 +104,27 @@ export const Signup = () => {
                       type="email"
                       name="email"
                       placeholder="Email"
-                      onChange={handleInput}
+                      onChange={(e) =>
+                        handleInput(e.target.name, e.target.value)
+                      }
                     />
                     <label htmlFor="email" className="form__label">
                       Email
                     </label>
                   </div>
                 </div>
-                <div className="col-12 my-3">
+                <div className="col-lg-6 col-sm-12 my-2 p-1">
+                  <div className="form__group field">
+                    <PhoneInput
+                      className="form__field"
+                      country={"us"}
+                      onChange={(value, country) =>
+                        handlePhoneChange(value, country)
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="col-lg-6 col-sm-12 my-2 p-1">
                   <div className="form__group field">
                     <input
                       className="form__field"
@@ -87,14 +132,38 @@ export const Signup = () => {
                       type="password"
                       name="password"
                       placeholder="Password"
-                      onChange={handleInput}
+                      onChange={(e) =>
+                        handleInput(e.target.name, e.target.value)
+                      }
                     />
                     <label htmlFor="password" className="form__label">
                       Password
                     </label>
                   </div>
                 </div>
-                <div className="col-12 my-3">
+                <div className="col-lg-6 col-sm-12 my-2 p-1">
+                  <div className="form__group field">
+                    <input
+                      className="form__field"
+                      id="confirmPassword"
+                      type="password"
+                      name="confirmPassword"
+                      placeholder="Confirm Password"
+                      onChange={(e) =>
+                        handleInput(e.target.name, e.target.value)
+                      }
+                    />
+                    <label htmlFor="confirmPassword" className="form__label">
+                      Confirm Password
+                    </label>
+                  </div>
+                </div>
+                <div className="col-12 p-1">
+                  <span className="error-messages">
+                    {auth?.error !== "" ? auth?.error : ""}
+                  </span>
+                </div>
+                <div className="col-12 my-2 p-1">
                   <button className="signup-btn">Sign up</button>
                 </div>
               </div>
@@ -106,7 +175,7 @@ export const Signup = () => {
             style={{ gridTemplateColumns: "350px" }}
           >
             <div className="row">
-              <div className="col-12">
+              <div className="col-12 p-1">
                 <button className="signgoogle-btn">
                   <img
                     src={googleIcon}

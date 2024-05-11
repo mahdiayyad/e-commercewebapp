@@ -11,12 +11,12 @@ $gray: #9b9b9b;
 }
 
 .form__field {
-  font-family: inherit;
+  font-family: inherit !important;
   width: 100%;
   border: 0;
   border-bottom: 2px solid $gray;
   outline: 0;
-  font-size: 13px;
+  font-size: 13px !important;
   font-weight: unset;
   color: $black;
   padding: 7px 0;
