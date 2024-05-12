@@ -15,3 +15,21 @@ export const forgetPassword = async (email) => {
     return error.response.data.message;
   }
 };
+
+export const verifyResetPasswordToken = async (token) => {
+  try {
+    const response = await instance.get(`/verify-reset-token/${token}`);
+    return response.data;
+  } catch (error) {
+    return error.response.data.message;
+  }
+};
+
+export const resetPassword = async (payload) => {
+  try {
+    const response = await instance.post("/reset-password", { ...payload });
+    return response.data;
+  } catch (error) {
+    return error.response.data.message;
+  }
+};

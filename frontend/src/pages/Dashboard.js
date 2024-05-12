@@ -5,7 +5,7 @@ export const Dashboard = () => {
   const auth = useAuth();
   return (
     <div>
-      Welcome to Dashboard, {auth.user?.name}
+      Welcome to Dashboard, {auth.user?.firstName + ' ' + auth.user?.lastName}
     </div>
   );
 };

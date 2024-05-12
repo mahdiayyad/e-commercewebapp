@@ -1,6 +1,7 @@
 const { v4: uuidv4 } = require("uuid");
 const jwt = require("jsonwebtoken");
 const userSchema = require("../schemas/userSchema");
+const resetPasswordTokensSchema = require("../schemas/resetPasswordTokensSchema");
 var nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
 const {
@@ -12,6 +13,10 @@ const {
 
 const generateAccessToken = (userId) => {
   return jwt.sign({ userId }, `${process.env.JWT_SECRET}`, { expiresIn: "7d" });
+};
+
+const generatePasswordResetToken = (userId) => {
+  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
 };
 
 const register = async (req, res) => {
@@ -114,67 +119,170 @@ const login = async (req, res) => {
   }
 };
 
-const getUser = async (req, res) => {
-  const token = req.query.token;
-  const user = await checkRecordExists("users", "access_token", token);
+const forgetPassword = async (req, res) => {
+  try {
+    const email = req.body.email;
+    const user = await checkRecordExists("users", "email", email);
 
-  if (!user) {
-    return res.status(404).json({
-      message: "User not found!",
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    const currentTime = new Date();
+    const expiryTime = new Date(currentTime.getTime() + 1 * 60 * 60 * 1000);
+    const token = generatePasswordResetToken(user.id);
+
+    await createTable(resetPasswordTokensSchema);
+
+    const resetPasswordTokens = await checkRecordExists(
+      "password_reset_tokens",
+      "user_id",
+      user.id
+    );
+
+    if (!resetPasswordTokens) {
+      await insertRecord("password_reset_tokens", {
+        user_id: user.id,
+        token: token,
+        expires_at: expiryTime,
+      });
+    } else {
+      await updateRecord("password_reset_tokens", {
+        token: token,
+        expires_at: expiryTime,
+      });
+    }
+
+    var transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+
+    var mailOptions = {
+      from: process.env.EMAIL,
+      to: email,
+      subject: "Reset Password",
+      html: `<p>Access this <a href="${process.env.REACT_APP_URL}/reset-password/${token}">link</a> to reset your password</p>`,
+    };
+
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        return res.status(500).json({
+          success: false,
+          message: error.message,
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "A confirmation link has been sent to your email. Please check your email",
+      });
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
     });
   }
-
-  return res.status(200).json({
-    user: user,
-    message: "User found!",
-  });
 };
 
-const forgetPassword = async (req, res) => {
-  const email = req.body.email;
-  const user = await checkRecordExists("users", "email", email);
+const verifyResetPasswordToken = async (req, res) => {
+  const token = req.params.token;
 
-  if (!user) {
-    return res.status(404).json({
-      success: false,
-      message: "User not found.",
-    });
-  }
+  try {
+    const resetPasswordTokens = await checkRecordExists(
+      "password_reset_tokens",
+      "token",
+      token
+    );
 
-  var transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-  });
-
-  var mailOptions = {
-    from: process.env.EMAIL,
-    to: email,
-    subject: "Testing email",
-    text: `Test Reset link`,
-  };
-
-  transporter.sendMail(mailOptions, function (error, info) {
-    if (error) {
-      return res.status(500).json({
+    if (!resetPasswordTokens) {
+      return res.status(200).json({
         success: false,
-        message: error.message,
+        message: "You don't have permission.",
+      });
+    }
+
+    if (resetPasswordTokens.expires_at < new Date()) {
+      return res.status(200).json({
+        success: false,
+        message: "Token expired.",
       });
     }
 
     return res.status(200).json({
       success: true,
-      message:
-        "A confirmation link has been sent to your email. Please check your email",
+      message: "Success",
+      token: resetPasswordTokens.token,
     });
-  });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { newPassword, confirmPassword } = req.body;
+
+    if (newPassword === "" || confirmPassword === "") {
+      return res.status(200).json({ message: "Please fill all fields." });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(200).json({ message: "Password doesn't match." });
+    }
+
+    if (newPassword.length < 8) {
+      return res
+        .status(200)
+        .json({ message: "Password must be at least 8 characters long." });
+    }
+
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*\W)/.test(newPassword)) {
+      return res.status(200).json({
+        message:
+          "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
+      });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    const updatePassword = await updateRecord("users", {
+      password: hashedPassword,
+    });
+
+    if (updatePassword) {
+      return res.status(200).json({
+        success: true,
+        message: "Password updated successfully.",
+      });
+    }
+    return res.status(200).json({
+      success: false,
+      message: "Something went wrong, try again later.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
 };
 
 module.exports = {
   register,
   login,
-  getUser,
   forgetPassword,
+  verifyResetPasswordToken,
+  resetPassword,
 };

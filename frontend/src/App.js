@@ -19,8 +19,21 @@ import { Breadcrumbs } from "./components/Breadcrumbs";
 import "owl.carousel/dist/assets/owl.carousel.css";
 import "owl.carousel/dist/assets/owl.theme.default.css";
 import { Contact } from "./pages/Contact";
+import { useEffect, useState } from "react";
+import { PageLoader } from "./components/PageLoader";
+import { ResetPassword } from "./pages/Auth/ResetPassword";
 
 function App() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 2300);
+
+    return () => clearTimeout(timeout);
+  }, []);
+
   const breadcrumbs = [
     { label: "Contact", link: "/contact-us" },
     { label: "About", link: "/about-us" },
@@ -29,34 +42,43 @@ function App() {
   return (
     <div className="app">
       <Router>
-        <AuthProvider>
-          <Header />
-          <div className="container">
-            <Breadcrumbs breadcrumbs={breadcrumbs} />
-          </div>
-          <div className="container content">
-            <Routes>
-              <Route path="/" element={<Home />}></Route>
-              <Route path="*" element={<NoPage />}></Route>
-              <Route path="/about-us" element={<About />}></Route>
-              <Route path="/contact-us" element={<Contact />}></Route>
-              <Route element={<AnonymousRoute />}>
-                <Route path="/signup" element={<Signup />}></Route>
-                <Route path="/login" element={<Login />}></Route>
-              </Route>
-              <Route
-                path="/forget-password"
-                element={<ForgetPassword />}
-              ></Route>
+        {loading ? (
+          <PageLoader />
+        ) : (
+          <AuthProvider>
+            <Header />
+            <div className="container">
+              <Breadcrumbs breadcrumbs={breadcrumbs} />
+            </div>
 
-              <Route element={<RequireAuth />}>
-                <Route path="/dashboard" element={<Dashboard />} />
-              </Route>
-            </Routes>
-          </div>
+            <div className="container content">
+              <Routes>
+                <Route path="/" element={<Home />}></Route>
+                <Route path="*" element={<NoPage />}></Route>
+                <Route path="/about-us" element={<About />}></Route>
+                <Route path="/contact-us" element={<Contact />}></Route>
+                <Route element={<AnonymousRoute />}>
+                  <Route path="/signup" element={<Signup />}></Route>
+                  <Route path="/login" element={<Login />}></Route>
+                  <Route
+                    path="/reset-password/:token"
+                    element={<ResetPassword />}
+                  ></Route>
+                </Route>
+                <Route
+                  path="/forget-password"
+                  element={<ForgetPassword />}
+                ></Route>
 
-          <Footer />
-        </AuthProvider>
+                <Route element={<RequireAuth />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                </Route>
+              </Routes>
+            </div>
+
+            <Footer />
+          </AuthProvider>
+        )}
       </Router>
     </div>
   );

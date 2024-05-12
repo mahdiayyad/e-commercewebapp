@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import sideImage from "../../assets/img/side-image.png";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../../hooks/AuthProvider";
+import Loader from "../../components/Loader";
 
 export const Login = () => {
   const [input, setInput] = useState({
@@ -9,11 +10,14 @@ export const Login = () => {
     password: "",
   });
 
+  const [loader, setLoader] = useState(false);
   const auth = useAuth();
 
   const handleSubmitEvent = (e) => {
+    setLoader(true);
     e.preventDefault();
     auth.login(input);
+    setLoader(false);
   };
 
   const handleInput = (e) => {
@@ -78,8 +82,12 @@ export const Login = () => {
                   </span>
                 </div>
                 <div className="col-12 my-3">
-                  <button className="login-btn" type="submit">
-                    Login
+                  <button
+                    className="login-btn"
+                    type="submit"
+                    disabled={loader ? true : false}
+                  >
+                    {loader ? <Loader className="spinner" /> : "Login"}
                   </button>
                 </div>
               </div>

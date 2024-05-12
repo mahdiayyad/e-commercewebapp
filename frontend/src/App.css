@@ -81,7 +81,8 @@ ul.header-ul {
 }
 
 .signup-form,
-.login-form {
+.login-form,
+.reset-password-form {
   justify-content: center;
   align-items: center;
   display: grid;
@@ -95,7 +96,8 @@ ul.header-ul {
 
 .signup-btn,
 .login-btn,
-.forget-password-btn {
+.forget-password-btn,
+.reset-password-btn {
   width: 100%;
   border: 1px solid #9b9b9b;
   background: linear-gradient(to right, #11998e, #38ef7d);
@@ -104,13 +106,22 @@ ul.header-ul {
   border-radius: 8px;
   color: #fff;
   transition: 0.3s;
+  height: 36px;
   /* font-weight: 600; */
 }
 
 .forget-password-btn:hover,
 .signup-btn:hover,
-.login-btn:hover {
+.login-btn:hover,
+.reset-password-btn:hover {
   opacity: 0.8;
+}
+
+.forget-password-btn:disabled,
+.login-btn:disabled,
+.reset-password-btn:disabled {
+  opacity: 1;
+  cursor: not-allowed;
 }
 
 .forget-password-container {
@@ -485,9 +496,65 @@ ul.hamburgermenu {
   font-weight: 600;
 }
 
-
-
 /* Swal customization */
 div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
   background-color: #d84444 !important;
+}
+
+/* Submit buttons loading spinner */
+.spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation-name: spin;
+  animation-duration: 500ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Page loader */
+
+.loading {
+  display: inline-block;
+  width: 64px;
+  height: 64px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.loading div {
+  position: absolute;
+  background: #d84444;
+  opacity: 1;
+  border-radius: 50%;
+  animation: loading 1.4s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+.loading div:nth-child(2) {
+  animation-delay: -0.7s;
+}
+@keyframes loading {
+  0% {
+    top: 28px;
+    left: 28px;
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    top: -1px;
+    left: -1px;
+    width: 58px;
+    height: 58px;
+    opacity: 0;
+  }
 }

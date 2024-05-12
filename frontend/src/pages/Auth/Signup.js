@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/AuthProvider";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import Loader from "../../components/Loader";
 
 export const Signup = () => {
   const [input, setInput] = useState({
@@ -17,18 +18,18 @@ export const Signup = () => {
     confirmPassword: "",
   });
 
+  const [loader, setLoader] = useState(false);
   const auth = useAuth();
 
   const handleSubmitEvent = (e) => {
+    setLoader(true);
     e.preventDefault();
     auth.register(input);
+    setLoader(false);
   };
 
   const handlePhoneChange = (value, country) => {
-    console.log(value);
-    const phoneNumberWithoutCode = value
-      .replace(country.dialCode, "")
-      .trim();
+    const phoneNumberWithoutCode = value.replace(country.dialCode, "").trim();
 
     setInput((prev) => ({
       ...prev,
@@ -164,7 +165,12 @@ export const Signup = () => {
                   </span>
                 </div>
                 <div className="col-12 my-2 p-1">
-                  <button className="signup-btn">Sign up</button>
+                  <button
+                    className="signup-btn"
+                    disabled={loader ? true : false}
+                  >
+                    {loader ? <Loader className="spinner" /> : "Sign up"}
+                  </button>
                 </div>
               </div>
             </form>

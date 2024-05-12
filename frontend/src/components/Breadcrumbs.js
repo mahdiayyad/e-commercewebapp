@@ -4,13 +4,16 @@ import { Link, useLocation } from "react-router-dom";
 export const Breadcrumbs = ({ breadcrumbs }) => {
   const location = useLocation();
   const pathname = location.pathname;
-
+  
   return pathname === "/" ? (
     ""
   ) : (
     <>
       <div className="breadcrumbs">
-        {pathname !== "/signup" && pathname !== "/login" && pathname !== "/forget-password" ? (
+        {pathname !== "/signup" &&
+        pathname !== "/login" &&
+        pathname !== "/forget-password" &&
+        !pathname.includes("reset-password") ? (
           <>
             <Link
               style={{
