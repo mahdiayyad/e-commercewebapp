@@ -78,6 +78,9 @@ export const AddProduct = ({ optModal, setOptModal, toggleOpen }) => {
                     <MDBCol>
                       <MDBFile
                         id="customFile"
+                        type="file"
+                        multiple
+                        accept="image/*"
                       />
                     </MDBCol>
                     <MDBCol>

@@ -6,7 +6,7 @@ const resetPasswordTokensSchema = `
         expires_at TIMESTAMP NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    )
+    );
 `;
 
 module.exports = resetPasswordTokensSchema;

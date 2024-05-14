@@ -5,6 +5,7 @@ import "./App.scss";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Login } from "./pages/auth/Login";
 import { Products } from "./pages/Products";
+import { Categories } from "./pages/Categories";
 import { SideNav } from "./components/SideNav";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
           <div className="container pt-4">
             <Routes>
               <Route path="/products" element={<Products />}></Route>
+              <Route path="/categories" element={<Categories />}></Route>
               <Route path="/login" element={<Login />}></Route>
             </Routes>
           </div>

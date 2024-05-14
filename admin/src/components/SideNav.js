@@ -12,6 +12,10 @@ export const SideNav = () => {
       route: "/products",
       name: "Products",
     },
+    {
+      route: "/categories",
+      name: "Categories",
+    },
   ];
   return (
     <div>
