@@ -73,6 +73,11 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   const { email, password } = req.body;
+
+  if (req.body.fromPlatform === undefined) {
+    req.body.fromPlatform = "dashboard";
+  }
+
   if (!email || !password) {
     res
       .status(400)
@@ -81,7 +86,18 @@ const login = async (req, res) => {
   }
 
   try {
-    const existingUser = await checkRecordExists("users", "email", email);
+    var existingUser;
+    if (req.body.fromPlatform === "admin") {
+      existingUser = await checkRecordExists("users", "email", email, {
+        email: email,
+        is_admin: 1,
+      });
+    } else {
+      existingUser = await checkRecordExists("users", "email", email, {
+        email: email,
+        is_admin: 0,
+      });
+    }
 
     if (existingUser) {
       if (!existingUser.password) {

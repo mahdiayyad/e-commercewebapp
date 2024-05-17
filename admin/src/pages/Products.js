@@ -123,7 +123,7 @@ export const Products = () => {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div className="container">
+    <div className="container" style={{ paddingLeft: "200px" }}>
       <div className="text-end mb-5">
         <MDBBtn onClick={toggleOpen}>Add Product</MDBBtn>
       </div>

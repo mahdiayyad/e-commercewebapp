@@ -6,22 +6,47 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Login } from "./pages/auth/Login";
 import { Products } from "./pages/Products";
 import { Categories } from "./pages/Categories";
+import NoPage from "./pages/NoPage";
 import { SideNav } from "./components/SideNav";
+import { AnonymousRoute, RequireAuth } from "./middleware/Auth";
+import { PageLoader } from "./components/PageLoader";
+import AuthProvider from "./hooks/AuthProvider";
+import { useEffect, useState } from "react";
 
 function App() {
+  const [loading, setLoading] = useState(true);
+  const user = localStorage.getItem("user");
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 2300);
+
+    return () => clearTimeout(timeout);
+  }, []);
+
   return (
     <div className="App">
       <Router>
-        <SideNav />
-        <main style={{ marginTop: "58px" }}>
-          <div className="container pt-4">
-            <Routes>
-              <Route path="/products" element={<Products />}></Route>
-              <Route path="/categories" element={<Categories />}></Route>
-              <Route path="/login" element={<Login />}></Route>
-            </Routes>
-          </div>
-        </main>
+        {loading ? (
+          <PageLoader />
+        ) : (
+          <AuthProvider>
+            {user && <SideNav />}
+            <div className="container pt-4 mt-5">
+              <Routes>
+                <Route path="*" element={<NoPage />} />
+                <Route element={<AnonymousRoute />}>
+                  <Route path="/login" element={<Login />} />
+                </Route>
+                <Route element={<RequireAuth />}>
+                  <Route path="/products" element={<Products />} />
+                  <Route path="/categories" element={<Categories />} />
+                </Route>
+              </Routes>
+            </div>
+          </AuthProvider>
+        )}
       </Router>
     </div>
   );

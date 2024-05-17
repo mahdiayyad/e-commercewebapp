@@ -1,5 +1,6 @@
 const inventorySchema = require("../schemas/inventorySchema");
 const productSchema = require("../schemas/productSchema");
+
 const {
   checkRecordExists,
   createTable,
@@ -60,11 +61,10 @@ const getAllProducts = async (req, res) => {
 
 const addProduct = async (req, res) => {
   try {
-    const { name, description, sku, price, categoryId, discountId, quantity } =
+    const { name, description, sku, price, category, discount, quantity } =
       req.body;
 
     await createTable(inventorySchema);
-
     const insertInventory = await insertRecord("product_inventory", {
       quantity: quantity,
     });
@@ -77,18 +77,36 @@ const addProduct = async (req, res) => {
     }
 
     await createTable(productSchema);
-
     const insertProduct = await insertRecord(tableName, {
       name: name,
       description: description,
       SKU: sku,
       price: price,
-      category_id: categoryId,
+      category_id: category,
       inventory_id: insertInventory?.insertId,
-      discount_id: discountId,
+      discount_id: discount,
     });
 
     if (!insertProduct) {
+      return res.status(500).json({
+        success: false,
+        message: "Something went wrong, try again later",
+      });
+    }
+
+    const insertFiles = req.files.map(async (file) => {
+      await insertRecord("product_files", {
+        file_name: file.filename,
+        product_id: insertProduct.insertId,
+        file_destination: file.desctination,
+        file_original_name: file.originalname,
+        file_path: file.path,
+        file_size: file.size,
+        file_mimetype: file.mimetype,
+      });
+    });
+
+    if (!insertFiles) {
       return res.status(500).json({
         success: false,
         message: "Something went wrong, try again later",

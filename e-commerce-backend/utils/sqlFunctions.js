@@ -25,11 +25,14 @@ const createTable = (schema) => {
   });
 };
 
-const checkRecordExists = (tableName, column, value) => {
+const checkRecordExists = (tableName, column, value, dynamicConditions = {}) => {
   return new Promise((resolve, reject) => {
     try {
       validateTableName(tableName);
-      const query = `SELECT * FROM ?? WHERE ?? = ?`;
+      const conditions = Object.keys(dynamicConditions)
+        .map(key => `${key} = ${pool.escape(dynamicConditions[key])}`)
+        .join(' AND ');
+      const query = `SELECT * FROM ?? WHERE ?? = ? ${conditions ? `AND ${conditions}` : ''}`;
       pool.query(query, [tableName, column, value], (err, results) => {
         if (err) reject(err);
         else resolve(results.length ? results[0] : null);

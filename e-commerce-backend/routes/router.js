@@ -1,5 +1,31 @@
 const express = require("express");
 const auth = require("../middleware/auth");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
+const storage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    const dir = "public/uploads/products";
+    try {
+      await fs.promises.mkdir(dir, { recursive: true });
+      cb(null, dir);
+    } catch (err) {
+      cb(err, dir);
+    }
+  },
+  filename: (req, file, cb) => {
+    cb(
+      null,
+      file.fieldname + "_" + Date.now() + path.extname(file.originalname)
+    );
+  },
+});
+
+const upload = multer({
+  storage: storage,
+});
+
 const {
   register,
   login,
@@ -47,7 +73,7 @@ router.delete("/category/:id", auth, deleteCategory);
 /* Products Routes */
 router.get("/get-all-products", auth, getAllProducts);
 router.get("/product", auth, getProductById);
-router.post("/product", auth, addProduct);
+router.post("/product", upload.array("uploadedFiles"), auth, addProduct);
 router.put("/product/:id", auth, editProduct);
 router.delete("/product/:id", auth, deleteProduct);
 

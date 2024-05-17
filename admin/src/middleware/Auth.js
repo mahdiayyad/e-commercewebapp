@@ -12,7 +12,7 @@ const AnonymousRoute = () => {
   const user = useAuth();
 
   if (user?.token) {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to="/products" />;
   }
 
   return <Outlet />;

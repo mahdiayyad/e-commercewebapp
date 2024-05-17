@@ -91,7 +91,7 @@ const addDiscount = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "Discount added successfully",
-      getDiscount,
+      discounts: getDiscount,
     });
   } catch (error) {
     return res.status(500).json({

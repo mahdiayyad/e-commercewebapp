@@ -12,36 +12,54 @@ import {
 } from "mdb-react-ui-kit";
 
 import Loader from "../components/Loader";
-import { AddProduct } from "../components/Modal/AddProduct";
+import { AddCategory } from "../components/Modal/AddCategory";
+import { getCategories } from "../APIs";
 
 export const Categories = () => {
-  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [optModal, setOptModal] = useState(false);
+  const [expandedState, setExpandedState] = useState({});
+
+  const toggleExpansion = (categoryId) => {
+    setExpandedState((prevState) => ({
+      ...prevState,
+      [categoryId]: !prevState[categoryId],
+    }));
+  };
+
+  const renderDescription = (category) => {
+    const isExpanded = expandedState[category.id];
+    if (isExpanded || category.description.length <= 100) {
+      return category.description;
+    } else {
+      return `${category.description.substring(0, 100)}...`;
+    }
+  };
 
   const toggleOpen = () => setOptModal(!optModal);
 
   useEffect(() => {
-    const getProducts = async () => {
+    const getCategoriesFromAPI = async () => {
       try {
-        const response = await fetch("https://dummyjson.com/products");
-        if (!response.ok) {
+        const response = await getCategories();
+        if (!response.success) {
           throw new Error("Network response was not ok");
         }
-        const data = await response.json();
-        setProducts(data.products);
+
+        setCategories(response.categories);
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error("Error fetching categories:", error);
       }
     };
-    getProducts();
+    getCategoriesFromAPI();
   }, []);
 
   const generatePageNumbers = () => {
-    const totalPages = Math.ceil(products.length / itemsPerPage);
+    const totalPages = Math.ceil(categories.length / itemsPerPage);
     const maxPagesToShow = 5; // Maximum number of pages to show in the pagination
 
     let startPage, endPage;
@@ -100,7 +118,7 @@ export const Categories = () => {
           </MDBPaginationItem>
         ))}
         <MDBPaginationItem
-          disabled={currentPage === Math.ceil(products.length / itemsPerPage)}
+          disabled={currentPage === Math.ceil(categories.length / itemsPerPage)}
         >
           <MDBPaginationLink onClick={() => paginate(currentPage + 1)}>
             Next
@@ -110,21 +128,21 @@ export const Categories = () => {
     );
   };
 
-  // Get current products
-  const indexOfLastProduct = currentPage * itemsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - itemsPerPage;
-  const currentProducts = products.slice(
-    indexOfFirstProduct,
-    indexOfLastProduct
+  // Get current categories
+  const indexOfLastCategory = currentPage * itemsPerPage;
+  const indexOfFirstCategory = indexOfLastCategory - itemsPerPage;
+  const currentCategories = categories.slice(
+    indexOfFirstCategory,
+    indexOfLastCategory
   );
 
   // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div className="container">
+    <div className="container" style={{ paddingLeft: "200px" }}>
       <div className="text-end mb-5">
-        <MDBBtn onClick={toggleOpen}>Add Product</MDBBtn>
+        <MDBBtn onClick={toggleOpen}>Add Category</MDBBtn>
       </div>
       <MDBTable align="middle">
         <MDBTableHead>
@@ -132,13 +150,12 @@ export const Categories = () => {
             <th scope="col" className="text-start">
               <MDBCheckbox name="flexCheck" value="" id="checkAll" />
             </th>
-            <th scope="col">
-              <i className="fa-solid fa-image"></i>
+            <th scope="col text" className="text-start">
+              Name
             </th>
-            <th scope="col">Name</th>
-            <th scope="col">Stock</th>
-            <th scope="col">Price</th>
-            <th scope="col">Brands</th>
+            <th scope="col" className="text-start">
+              Description
+            </th>
             <th scope="col">Actions</th>
           </tr>
         </MDBTableHead>
@@ -150,41 +167,40 @@ export const Categories = () => {
               </td>
             </tr>
           ) : (
-            currentProducts.map((product, index) => (
+            currentCategories.map((category, index) => (
               <tr key={index}>
                 <td className="text-start">
                   <MDBCheckbox
                     name="flexCheck"
                     value=""
-                    id={`check_${product.id}`}
-                  />
-                </td>
-                <td>
-                  <img
-                    src={product.images[0]}
-                    alt=""
-                    style={{ width: "60px", height: "60px" }}
-                    className=""
+                    id={`check_${category.id}`}
                   />
                 </td>
                 <td>
                   <div className="m-2">
-                    <p className="fw-bold mb-1">{product.title}</p>
+                    <p className="fw-bold mb-1 text-start">{category.name}</p>
                   </div>
                 </td>
                 <td>
-                  <MDBBadge color="success" pill>
-                    In stock
-                  </MDBBadge>{" "}
-                  ({product.stock})
-                </td>
-                <td>
-                  <p className="fw-bold mb-1">${product.price}</p>
-                </td>
-                <td>
-                  <p className="fw-bold mb-1">{`${product.category
-                    .toUpperCase()
-                    .charAt(0)}${product.category.slice(1)}`}</p>
+                  <div className="m-2">
+                    <p className="fw-bold mb-1 text-start">
+                      {renderDescription(category)}
+                      {category.description.length > 100 && (
+                        <span
+                          onClick={() => toggleExpansion(category.id)}
+                          style={{
+                            cursor: "pointer",
+                            color: "#3b71ca",
+                            fontSize: "12px",
+                          }}
+                        >
+                          {expandedState[category.id]
+                            ? " Show less"
+                            : " Show more"}
+                        </span>
+                      )}
+                    </p>
+                  </div>
                 </td>
                 <td>
                   <MDBBtn color="link" rounded size="sm">
@@ -202,7 +218,7 @@ export const Categories = () => {
         </MDBPagination>
       </nav>
 
-      <AddProduct
+      <AddCategory
         optModal={optModal}
         setOptModal={setOptModal}
         toggleOpen={toggleOpen}
