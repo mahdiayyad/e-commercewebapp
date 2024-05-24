@@ -37,7 +37,6 @@
   }
 }
 
-
 @media (min-width: 991.98px) {
   main {
     padding-left: 240px;
@@ -92,7 +91,7 @@
 }
 .loading div {
   position: absolute;
-  background: #d84444;
+  background: #3b71ca;
   opacity: 1;
   border-radius: 50%;
   animation: loading 1.4s cubic-bezier(0, 0.2, 0.8, 1) infinite;
@@ -100,6 +99,38 @@
 .loading div:nth-child(2) {
   animation-delay: -0.7s;
 }
+
+/* Date picker style customization */
+.react-datepicker-wrapper {
+  width: 100% !important;
+}
+.react-datepicker__input-container > input,
+.react-datepicker-ignore-onclickoutside {
+  width: 100% !important;
+  background-clip: padding-box !important;
+  border: 1px solid #bdbdbd !important;
+  color: #4f4f4f !important;
+  background-color: #fff !important;
+  line-height: 1.6 !important;
+  font-size: 1rem !important;
+  font-weight: 400 !important;
+  appearance: none !important;
+  border-radius: 0.25rem !important;
+  min-height: auto;
+  padding: 4.5px 12px 3.68px 12px;
+}
+
+.react-datepicker__input-container > input:focus,
+.react-datepicker-ignore-onclickoutside:focus {
+  border: 1px solid #bdbdbd !important;
+  outline: none !important;
+}
+
+.form-check {
+  display: inline-block !important;
+  float: left !important;
+}
+
 @keyframes loading {
   0% {
     top: 28px;

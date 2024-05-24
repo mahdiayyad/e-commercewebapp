@@ -1,11 +1,18 @@
 import { Link, useLocation } from "react-router-dom";
+import {
+  MDBDropdown,
+  MDBDropdownMenu,
+  MDBDropdownToggle,
+  MDBDropdownItem,
+} from "mdb-react-ui-kit";
+import { useAuth } from "../hooks/AuthProvider";
 
 export const SideNav = () => {
   const location = useLocation();
   const pathname = location.pathname;
   const pages = [
     {
-      route: "/",
+      route: "/dashboard",
       name: "Main Dashboard",
     },
     {
@@ -17,6 +24,13 @@ export const SideNav = () => {
       name: "Categories",
     },
   ];
+
+  const auth = useAuth();
+
+  const handleLogout = async () => {
+    await auth?.logOut();
+  }
+
   return (
     <div>
       <header>
@@ -195,43 +209,32 @@ export const SideNav = () => {
               </li>
 
               <li className="nav-item dropdown">
-                <a
-                  data-mdb-dropdown-init
-                  className="nav-link dropdown-toggle hidden-arrow d-flex align-items-center"
-                  href="#"
-                  id="navbarDropdownMenuLink"
-                  role="button"
-                  data-mdb-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  <img
-                    src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img (31).webp"
-                    className="rounded-circle"
-                    height="22"
-                    alt="Avatar"
-                    loading="lazy"
-                  />
-                </a>
-                <ul
-                  className="dropdown-menu dropdown-menu-end"
-                  aria-labelledby="navbarDropdownMenuLink"
-                >
-                  <li>
-                    <a className="dropdown-item" href="#">
-                      My profile
-                    </a>
-                  </li>
-                  <li>
-                    <a className="dropdown-item" href="#">
-                      Settings
-                    </a>
-                  </li>
-                  <li>
-                    <a className="dropdown-item" href="#">
+                <MDBDropdown>
+                  <MDBDropdownToggle
+                    tag="a"
+                    style={{
+                      position: "relative",
+                      top: "7px",
+                      left: "5px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <img
+                      src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img (31).webp"
+                      className="rounded-circle"
+                      height="22"
+                      alt="Avatar"
+                      loading="lazy"
+                    />
+                  </MDBDropdownToggle>
+                  <MDBDropdownMenu>
+                    <MDBDropdownItem link>My Profile</MDBDropdownItem>
+                    <MDBDropdownItem link>Settings</MDBDropdownItem>
+                    <MDBDropdownItem link onClick={handleLogout}>
                       Logout
-                    </a>
-                  </li>
-                </ul>
+                    </MDBDropdownItem>
+                  </MDBDropdownMenu>
+                </MDBDropdown>
               </li>
             </ul>
           </div>

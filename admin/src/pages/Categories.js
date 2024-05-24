@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  MDBBadge,
   MDBBtn,
   MDBTable,
   MDBTableHead,
@@ -12,8 +11,10 @@ import {
 } from "mdb-react-ui-kit";
 
 import Loader from "../components/Loader";
-import { AddCategory } from "../components/Modal/AddCategory";
-import { getCategories } from "../APIs";
+import { Add } from "../components/Modal/category/Add";
+import { Edit } from "../components/Modal/category/Edit";
+import { deleteCategory, getCategories } from "../APIs";
+import Swal from "sweetalert2";
 
 export const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -22,6 +23,8 @@ export const Categories = () => {
   const [itemsPerPage] = useState(10);
   const [optModal, setOptModal] = useState(false);
   const [expandedState, setExpandedState] = useState({});
+  const [id, setCategoryId] = useState("");
+  const [optEditModal, setOptEditModal] = useState(false);
 
   const toggleExpansion = (categoryId) => {
     setExpandedState((prevState) => ({
@@ -139,6 +142,40 @@ export const Categories = () => {
   // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  const handleDeleteItem = (category_id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3b71ca",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if(result.isConfirmed) {
+        deleteCategory(category_id).then(async (res) => {
+          if (res.success) {
+            Swal.fire({
+              title: "Deleted!",
+              text: res.message,
+              icon: "success",
+            });
+  
+            await getCategories().then((res) => {
+              setCategories(res.categories);
+            });
+          } else {
+            Swal.fire({
+              title: "Deleted!",
+              text: res,
+              icon: "error",
+            });
+          }
+        });
+      }
+    });
+  };
+
   return (
     <div className="container" style={{ paddingLeft: "200px" }}>
       <div className="text-end mb-5">
@@ -181,7 +218,7 @@ export const Categories = () => {
                     <p className="fw-bold mb-1 text-start">{category.name}</p>
                   </div>
                 </td>
-                <td>
+                <td style={{ width: "55%" }}>
                   <div className="m-2">
                     <p className="fw-bold mb-1 text-start">
                       {renderDescription(category)}
@@ -203,8 +240,30 @@ export const Categories = () => {
                   </div>
                 </td>
                 <td>
-                  <MDBBtn color="link" rounded size="sm">
-                    Edit
+                  <MDBBtn
+                    color="link"
+                    rounded
+                    size="sm"
+                    onClick={() => {
+                      setOptEditModal(!optEditModal);
+                      setCategoryId(category?.id);
+                    }}
+                  >
+                    <i
+                      className="fa-solid fa-pen fs-6"
+                      style={{ color: "#3b71ca" }}
+                    ></i>
+                  </MDBBtn>
+                  <MDBBtn
+                    color="link"
+                    rounded
+                    size="sm"
+                    onClick={() => handleDeleteItem(category?.id)}
+                  >
+                    <i
+                      className="fa-solid fa-trash fs-6"
+                      style={{ color: "#3b71ca" }}
+                    ></i>
                   </MDBBtn>
                 </td>
               </tr>
@@ -218,10 +277,18 @@ export const Categories = () => {
         </MDBPagination>
       </nav>
 
-      <AddCategory
+      <Add
         optModal={optModal}
         setOptModal={setOptModal}
         toggleOpen={toggleOpen}
+        setCategories={setCategories}
+      />
+
+      <Edit
+        optModal={optEditModal}
+        setOptModal={setOptEditModal}
+        setCategories={setCategories}
+        categoryId={id}
       />
     </div>
   );

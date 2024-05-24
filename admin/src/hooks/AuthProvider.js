@@ -23,7 +23,7 @@ const AuthProvider = ({ children }) => {
           localStorage.setItem("user", JSON.stringify(res.data.user));
           localStorage.setItem("site", res.data.access_token);
           setError("");
-          navigate("/");
+          window.location.href = "/dashboard";
           return;
         }
 
@@ -73,7 +73,7 @@ const AuthProvider = ({ children }) => {
     setUser(null);
     setToken("");
     localStorage.clear();
-    navigate("/login");
+    window.location.href = "/login";
   };
 
   return (

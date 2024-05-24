@@ -8,6 +8,7 @@ const VALID_TABLE_NAMES = [
   "product",
   "discount",
   "product_inventory",
+  "product_files",
 ];
 
 const validateTableName = (tableName) => {
@@ -25,14 +26,21 @@ const createTable = (schema) => {
   });
 };
 
-const checkRecordExists = (tableName, column, value, dynamicConditions = {}) => {
+const checkRecordExists = (
+  tableName,
+  column,
+  value,
+  dynamicConditions = {}
+) => {
   return new Promise((resolve, reject) => {
     try {
       validateTableName(tableName);
       const conditions = Object.keys(dynamicConditions)
-        .map(key => `${key} = ${pool.escape(dynamicConditions[key])}`)
-        .join(' AND ');
-      const query = `SELECT * FROM ?? WHERE ?? = ? ${conditions ? `AND ${conditions}` : ''}`;
+        .map((key) => `${key} = ${pool.escape(dynamicConditions[key])}`)
+        .join(" AND ");
+      const query = `SELECT * FROM ?? WHERE ?? = ? ${
+        conditions ? `AND ${conditions}` : ""
+      }`;
       pool.query(query, [tableName, column, value], (err, results) => {
         if (err) reject(err);
         else resolve(results.length ? results[0] : null);
@@ -109,6 +117,59 @@ const deleteRecord = (tableName, id) => {
   });
 };
 
+/*
+********************************************************************
+Example:
+wanted = "product.*,prod_files.file_path, prod_inv.quantity, prod_cat.name AS category_name";
+
+relations = {
+  'product_files': 'LEFT JOIN product_files AS prod_files ON product.id = prod_files.product_id',
+  'product_inventory': 'LEFT JOIN product_inventory AS prod_inv ON product.inventory_id = prod_inv.id',
+  'product_category': 'LEFT JOIN product_category AS prod_cat ON product.category_id = prod_cat.id',
+}
+
+conditions = {
+  'where': 'id = something',
+  'having': 'count > or < or = something',
+  'group by': '',
+  'order by': 'product.id ASC',
+  etc...
+}
+********************************************************************
+*/
+const getAllRelations = (
+  tableName,
+  wanted = "*",
+  relations = {},
+  conditions = {}
+) => {
+  return new Promise((resolve, reject) => {
+    try {
+      validateTableName(tableName);
+      let query = `SELECT ${wanted} FROM ??`;
+      const queryParams = [tableName];
+
+      if (Object.keys(relations).length > 0) {
+        const joinStatements = Object.values(relations).join(" ");
+        query += ` ${joinStatements}`;
+      }
+
+      if (Object.keys(conditions).length > 0) {
+        for (const [key, value] of Object.entries(conditions)) {
+          query += ` ${key.toUpperCase()} ${value}`;
+        }
+      }
+
+      pool.query(query, queryParams, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 module.exports = {
   createTable,
   checkRecordExists,
@@ -116,4 +177,5 @@ module.exports = {
   updateRecord,
   getAllRecords,
   deleteRecord,
+  getAllRelations,
 };

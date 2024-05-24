@@ -8,13 +8,30 @@ const {
   getAllRecords,
   updateRecord,
   deleteRecord,
+  getAllRelations,
 } = require("../utils/sqlFunctions");
 const tableName = "product";
 
 const getProductById = async (req, res) => {
   try {
     const { id } = req.query;
-    const product = await checkRecordExists(tableName, "id", id);
+
+    const product = await getAllRelations(
+      tableName,
+      "product.*,prod_files.id AS file_id, prod_files.file_name, prod_inv.id AS inventory_id, prod_inv.quantity, prod_cat.name AS category_name, prod_cat.id AS category_id",
+      {
+        product_files:
+          "LEFT JOIN product_files AS prod_files ON product.id = prod_files.product_id",
+        product_inventory:
+          "LEFT JOIN product_inventory AS prod_inv ON product.id = prod_inv.product_id",
+        product_category:
+          "LEFT JOIN product_category AS prod_cat ON product.category_id = prod_cat.id",
+      },
+      {
+        WHERE: `product.id = ${id}`,
+        "ORDER BY": "product.id ASC",
+      }
+    );
 
     if (!product) {
       return res.status(404).json({
@@ -37,7 +54,21 @@ const getProductById = async (req, res) => {
 
 const getAllProducts = async (req, res) => {
   try {
-    const products = await getAllRecords(tableName);
+    const products = await getAllRelations(
+      tableName,
+      "product.*,prod_files.file_name, prod_inv.quantity, prod_cat.name AS category_name",
+      {
+        product_files:
+          "LEFT JOIN product_files AS prod_files ON product.id = prod_files.product_id",
+        product_inventory:
+          "LEFT JOIN product_inventory AS prod_inv ON product.id = prod_inv.product_id",
+        product_category:
+          "LEFT JOIN product_category AS prod_cat ON product.category_id = prod_cat.id",
+      },
+      {
+        "ORDER BY": "product.id ASC",
+      }
+    );
 
     if (!products) {
       return res.status(404).json({
@@ -61,20 +92,17 @@ const getAllProducts = async (req, res) => {
 
 const addProduct = async (req, res) => {
   try {
-    const { name, description, sku, price, category, discount, quantity } =
-      req.body;
-
-    await createTable(inventorySchema);
-    const insertInventory = await insertRecord("product_inventory", {
-      quantity: quantity,
-    });
-
-    if (!insertInventory) {
-      return res.status(500).json({
-        success: false,
-        message: "Something went wrong, try again later",
-      });
-    }
+    const {
+      name,
+      description,
+      sku,
+      price,
+      category,
+      discount,
+      quantity,
+      discountExpiryDate,
+      hasDiscountExpiry,
+    } = req.body;
 
     await createTable(productSchema);
     const insertProduct = await insertRecord(tableName, {
@@ -83,8 +111,9 @@ const addProduct = async (req, res) => {
       SKU: sku,
       price: price,
       category_id: category,
-      inventory_id: insertInventory?.insertId,
       discount_id: discount,
+      has_discount_expiry: hasDiscountExpiry,
+      discount_expiry: discountExpiryDate !== "" ? discountExpiryDate : null,
     });
 
     if (!insertProduct) {
@@ -94,11 +123,24 @@ const addProduct = async (req, res) => {
       });
     }
 
-    const insertFiles = req.files.map(async (file) => {
-      await insertRecord("product_files", {
+    await createTable(inventorySchema);
+    const insertInventory = await insertRecord("product_inventory", {
+      quantity: quantity,
+      product_id: insertProduct?.insertId,
+    });
+
+    if (!insertInventory) {
+      return res.status(500).json({
+        success: false,
+        message: "Something went wrong, try again later",
+      });
+    }
+
+    const insertFiles = req.files.map((file) => {
+      insertRecord("product_files", {
         file_name: file.filename,
         product_id: insertProduct.insertId,
-        file_destination: file.desctination,
+        file_destination: file.destination,
         file_original_name: file.originalname,
         file_path: file.path,
         file_size: file.size,
@@ -129,6 +171,7 @@ const addProduct = async (req, res) => {
       success: true,
       message: "Product added successfully",
       getProduct,
+      insertFiles,
     });
   } catch (error) {
     return res.status(500).json({
@@ -143,12 +186,16 @@ const editProduct = async (req, res) => {
     const {
       name,
       description,
-      sku,
       price,
       categoryId,
-      inventoryId,
+      inventory_id,
       discountId,
+      quantity,
+      file_id,
+      discountExpiryDate,
+      hasDiscountExpiry,
     } = req.body;
+
     const { id } = req.params;
     const getProduct = await checkRecordExists(tableName, "id", id);
 
@@ -162,11 +209,29 @@ const editProduct = async (req, res) => {
     const updateData = {};
     if (name !== undefined) updateData.name = name;
     if (description !== undefined) updateData.description = description;
-    if (sku !== undefined) updateData.SKU = sku;
     if (price !== undefined) updateData.price = price;
     if (categoryId !== undefined) updateData.category_id = categoryId;
-    if (inventoryId !== undefined) updateData.inventory_id = inventoryId;
     if (discountId !== undefined) updateData.discount_id = discountId;
+    if (hasDiscountExpiry !== undefined)
+      updateData.has_discount_expiry = hasDiscountExpiry;
+    if (discountExpiryDate !== undefined)
+      updateData.discount_expiry =
+        discountExpiryDate !== "" ? discountExpiryDate : null;
+
+    const updateQuantity = await updateRecord(
+      "product_inventory",
+      {
+        quantity: quantity,
+      },
+      inventory_id
+    );
+
+    if (!updateQuantity) {
+      return res.status(500).json({
+        success: false,
+        message: "Something went wrong, try again later",
+      });
+    }
 
     const Product = await updateRecord(tableName, updateData, id);
 
@@ -175,6 +240,49 @@ const editProduct = async (req, res) => {
         success: false,
         message: "Something went wrong, try again later",
       });
+    }
+
+    if (file_id !== "") {
+      const updateFile = req.files.map((file) => {
+        updateRecord(
+          "product_files",
+          {
+            file_name: file.filename,
+            file_destination: file.destination,
+            file_original_name: file.originalname,
+            file_path: file.path,
+            file_size: file.size,
+            file_mimetype: file.mimetype,
+          },
+          file_id
+        );
+      });
+
+      if (!updateFile) {
+        return res.status(500).json({
+          success: false,
+          message: "Something went wrong, try again later",
+        });
+      }
+    } else {
+      const insertFiles = req.files.map((file) => {
+        insertRecord("product_files", {
+          file_name: file.filename,
+          product_id: id,
+          file_destination: file.destination,
+          file_original_name: file.originalname,
+          file_path: file.path,
+          file_size: file.size,
+          file_mimetype: file.mimetype,
+        });
+      });
+
+      if (!insertFiles) {
+        return res.status(500).json({
+          success: false,
+          message: "Something went wrong, try again later",
+        });
+      }
     }
 
     return res.status(200).json({

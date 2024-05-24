@@ -12,6 +12,7 @@ import { AnonymousRoute, RequireAuth } from "./middleware/Auth";
 import { PageLoader } from "./components/PageLoader";
 import AuthProvider from "./hooks/AuthProvider";
 import { useEffect, useState } from "react";
+import { Dashboard } from "./pages/Dashboard";
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -35,11 +36,12 @@ function App() {
             {user && <SideNav />}
             <div className="container pt-4 mt-5">
               <Routes>
-                <Route path="*" element={<NoPage />} />
                 <Route element={<AnonymousRoute />}>
                   <Route path="/login" element={<Login />} />
                 </Route>
                 <Route element={<RequireAuth />}>
+                  <Route path="*" element={<NoPage />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/products" element={<Products />} />
                   <Route path="/categories" element={<Categories />} />
                 </Route>

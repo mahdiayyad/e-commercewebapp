@@ -74,7 +74,7 @@ router.delete("/category/:id", auth, deleteCategory);
 router.get("/get-all-products", auth, getAllProducts);
 router.get("/product", auth, getProductById);
 router.post("/product", upload.array("uploadedFiles"), auth, addProduct);
-router.put("/product/:id", auth, editProduct);
+router.put("/product/:id", upload.array("uploadedFiles"), auth, editProduct);
 router.delete("/product/:id", auth, deleteProduct);
 
 /* Discounts Routes */

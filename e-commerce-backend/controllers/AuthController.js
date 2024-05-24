@@ -112,7 +112,7 @@ const login = async (req, res) => {
 
       if (passwordMatch) {
         const token = generateAccessToken(existingUser.id);
-        await updateRecord("users", { access_token: token });
+        await updateRecord("users", { access_token: token }, existingUser.id);
         res.status(200).json({
           user: {
             id: existingUser.id,
